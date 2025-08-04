@@ -1,0 +1,28 @@
+{% extends 'eventos/base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2 class="mb-4">Lista de Eventos</h2>
+
+    <div class="mb-3 text-end">
+      <a href="{% url 'evento-create' %}" class="btn btn-primary">+ Novo Evento</a>
+    </div>
+
+    <ul class="list-group">
+      {% for evento in eventos %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ evento.titulo }}</strong> – {{ evento.data }} – {{ evento.local }}
+          </div>
+          <div>
+            <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-sm btn-success me-2">Inscrever-se</a>
+            <a href="{% url 'evento-update' evento.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
+            <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item">Nenhum evento disponível.</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}
