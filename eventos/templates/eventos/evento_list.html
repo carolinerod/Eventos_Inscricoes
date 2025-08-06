@@ -4,9 +4,11 @@
   <div class="container mt-4">
     <h2 class="mb-4">Lista de Eventos</h2>
 
-    <div class="mb-3 text-end">
-      <a href="{% url 'evento-create' %}" class="btn btn-primary">+ Novo Evento</a>
-    </div>
+    {% if user.is_authenticated %}
+      <div class="mb-3 text-end">
+        <a href="{% url 'evento-create' %}" class="btn btn-primary">+ Novo Evento</a>
+      </div>
+    {% endif %}
 
     <ul class="list-group">
       {% for evento in eventos %}
@@ -16,8 +18,11 @@
           </div>
           <div>
             <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-sm btn-success me-2">Inscrever-se</a>
-            <a href="{% url 'evento-update' evento.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
-            <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+
+            {% if user.is_authenticated %}
+              <a href="{% url 'evento-update' evento.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
+              <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+            {% endif %}
           </div>
         </li>
       {% empty %}

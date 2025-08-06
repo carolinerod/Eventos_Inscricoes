@@ -1,14 +1,15 @@
 from django.views import View
-from django.shortcuts import get_object_or_404, redirect
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.mixins import LoginRequiredMixin  
 from .models import Evento, Participante, Inscricao
 from .forms import EventoForm, ParticipanteForm
+
 
 class EventoListView(ListView):
     model = Evento
@@ -16,27 +17,30 @@ class EventoListView(ListView):
     context_object_name = 'eventos'
 
 
-class EventoCreateView(CreateView):
+class EventoCreateView(LoginRequiredMixin, CreateView): 
     model = Evento
     form_class = EventoForm
     template_name = 'eventos/evento_form.html'
     success_url = reverse_lazy('evento-list')
+    login_url = 'login'  
 
 
-class EventoUpdateView(UpdateView):
+class EventoUpdateView(LoginRequiredMixin, UpdateView):  
     model = Evento
     fields = ['titulo', 'descricao', 'data', 'local', 'imagem']
     template_name = 'eventos/evento_form.html'
     success_url = reverse_lazy('evento-list')
+    login_url = 'login'
 
 
-class EventoDeleteView(DeleteView):
+class EventoDeleteView(LoginRequiredMixin, DeleteView):  
     model = Evento
     template_name = 'eventos/evento_confirm_delete.html'
     success_url = reverse_lazy('evento-list')
+    login_url = 'login'
 
 
-class InscricaoCreateView(FormView):
+class InscricaoCreateView(FormView):  
     template_name = 'eventos/inscricao_form.html'
     form_class = ParticipanteForm
 
@@ -60,7 +64,6 @@ class InscricaoCreateView(FormView):
             fail_silently=False,
         )
 
-        
         send_mail(
             subject='Nova Inscrição Recebida',
             message=f'{participante.nome} se inscreveu no evento "{self.evento.titulo}".',
@@ -79,3 +82,11 @@ class InscricaoCreateView(FormView):
         context = super().get_context_data(**kwargs)
         context['evento'] = self.evento
         return context
+
+
+class OrganizadorLoginView(LoginView):
+    template_name = 'eventos/login.html'
+
+
+class OrganizadorLogoutView(LogoutView):
+    next_page = reverse_lazy('evento-list')
