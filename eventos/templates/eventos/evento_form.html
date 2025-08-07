@@ -5,7 +5,7 @@
 
 {% block content %}
   <div class="container mt-4">
-    <h2>Cadastrar Novo Evento</h2>
+    <h2 class="mb-4">Cadastrar Novo Evento</h2>
 
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
@@ -24,6 +24,8 @@
       {% endfor %}
 
       <button type="submit" class="btn btn-primary">Salvar</button>
+      <a href="{% url 'evento-list' %}" class="btn btn-secondary ms-2">Voltar</a>
     </form>
   </div>
 {% endblock %}
+

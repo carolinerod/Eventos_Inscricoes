@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -11,10 +9,13 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="{% url 'evento-list' %}">Eventos</a>
-      <div class="d-flex">
+      <div class="d-flex align-items-center">
         {% if user.is_authenticated %}
           <span class="navbar-text me-2">Olá, {{ user.username }}</span>
-          <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Sair</a>
+          <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">Sair</button>
+          </form>
         {% else %}
           <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">Login do Organizador</a>
         {% endif %}
