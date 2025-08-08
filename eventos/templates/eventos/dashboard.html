@@ -1,0 +1,25 @@
+
+{% extends "eventos/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Dashboard</h1>
+
+<p class="mb-1"><strong>Total de eventos:</strong> {{ total_eventos }}</p>
+<p class="mb-1"><strong>Total de inscrições:</strong> {{ total_inscricoes }}</p>
+<p class="mb-4"><strong>Total de participantes:</strong> {{ total_participantes }}</p>
+
+<h5 class="mb-2">Próximos eventos</h5>
+{% if proximos_eventos %}
+  <ul class="mb-0">
+    {% for ev in proximos_eventos %}
+      <li>
+        {{ ev.titulo }} — {{ ev.data|date:"d/m/Y H:i" }} — {{ ev.local }} 
+        ({{ ev.inscricoes.count }} inscritos)
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">Nenhum evento futuro encontrado.</p>
+{% endif %}
+{% endblock %}

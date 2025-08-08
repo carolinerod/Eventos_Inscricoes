@@ -1,44 +1,47 @@
-{% extends 'eventos/base.html' %}
+{% extends "eventos/base.html" %}
 
-{% block title %}Eventos Disponíveis{% endblock %}
+{% block title %}Eventos – Data & Business Intelligence Summit 2025{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">Lista de Eventos</h2>
+<h2 class="mb-4">Próximos eventos</h2>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-sm-4">
+    <label class="form-label">Data</label>
+    <input type="date" name="data" class="form-control" value="{{ f_data }}">
+  </div>
+  <div class="col-sm-6">
+    <label class="form-label">Local</label>
+    <input type="text" name="local" class="form-control" placeholder="Ex.: Auditório, Lab" value="{{ f_local }}">
+  </div>
+  <div class="col-sm-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+  </div>
+</form>
+
+<div class="row row-cols-1 row-cols-md-2 g-3">
+  {% for evento in eventos %}
+    <div class="col">
+      <div class="card shadow-sm h-100">
+        {% if evento.imagem %}
+          <img src="{{ evento.imagem.url }}" class="card-img-top" alt="{{ evento.titulo }}">
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title mb-1">{{ evento.titulo }}</h5>
+          <span class="badge bg-info">{{ evento.get_tipo_display }}</span>
+          <p class="text-muted mt-2 mb-1">
+            <strong>Quando:</strong> {{ evento.data|date:"d/m/Y H:i" }}<br>
+            <strong>Onde:</strong> {{ evento.local }}
+          </p>
+          <p class="card-text">{{ evento.descricao|truncatewords:25 }}</p>
+          <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-success">Inscrever-se</a>
+        </div>
       </div>
-    {% endfor %}
-  {% endif %}
-
-  {% if user.is_authenticated %}
-    <div class="mb-3 text-end">
-      <a href="{% url 'evento-create' %}" class="btn btn-primary">+ Novo Evento</a>
     </div>
-  {% endif %}
-
-  <ul class="list-group">
-    {% for evento in eventos %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-          <strong>{{ evento.titulo }}</strong> – {{ evento.data }} – {{ evento.local }}
-        </div>
-        <div>
-          <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-sm btn-success me-2">Inscrever-se</a>
-
-          {% if user.is_authenticated %}
-            <a href="{% url 'evento-update' evento.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
-            <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-sm btn-danger">Excluir</a>
-          {% endif %}
-        </div>
-      </li>
-    {% empty %}
-      <li class="list-group-item">Nenhum evento disponível no momento.</li>
-    {% endfor %}
-  </ul>
+  {% empty %}
+    <div class="col">
+      <div class="alert alert-info">Nenhum evento encontrado.</div>
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}
