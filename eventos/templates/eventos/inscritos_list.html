@@ -1,0 +1,35 @@
+{% extends 'eventos/base.html' %}
+{% block title %}Inscritos - {{ evento.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Inscritos no Evento: {{ evento.titulo }}</h2>
+  <p><strong>Data:</strong> {{ evento.data|date:"d/m/Y H:i" }} | <strong>Local:</strong> {{ evento.local }}</p>
+  <hr>
+
+  {% if evento.inscricoes.all %}
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inscricao in evento.inscricoes.all %}
+          <tr>
+            <td>{{ inscricao.participante.nome }}</td>
+            <td>{{ inscricao.participante.email }}</td>
+            <td>{{ inscricao.participante.telefone }}</td>
+            <td>{{ inscricao.participante.observacoes|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Nenhum participante inscrito até o momento.</p>
+  {% endif %}
+</div>
+{% endblock %}

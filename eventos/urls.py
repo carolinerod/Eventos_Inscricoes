@@ -1,12 +1,12 @@
 from django.urls import path
+from django.contrib.auth.views import LoginView, LogoutView
 from .views import (
     EventoListView,
     EventoCreateView,
     EventoUpdateView,
     EventoDeleteView,
     InscricaoCreateView,
-    OrganizadorLoginView,
-    OrganizadorLogoutView,
+    IngressoDetailView,
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('editar/<int:pk>/', EventoUpdateView.as_view(), name='evento-update'),
     path('<int:pk>/excluir/', EventoDeleteView.as_view(), name='evento-delete'),
     path('evento/<int:pk>/inscrever/', InscricaoCreateView.as_view(), name='evento-inscricao'),
-    path('login/', OrganizadorLoginView.as_view(), name='login'),
-    path('logout/', OrganizadorLogoutView.as_view(), name='logout'),
+    path('login/', LoginView.as_view(template_name='eventos/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(next_page='evento-list'), name='logout'),
+    path('ingresso/<int:pk>/', IngressoDetailView.as_view(), name='ingresso-detail'),
 ]

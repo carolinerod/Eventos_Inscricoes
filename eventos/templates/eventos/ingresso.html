@@ -1,0 +1,29 @@
+{% extends 'eventos/base.html' %}
+
+{% block title %}Ingresso - {{ inscricao.evento.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+  <h2 class="mb-4">{{ inscricao.evento.titulo }}</h2>
+
+  {% if inscricao.evento.imagem %}
+    <img src="{{ inscricao.evento.imagem.url }}" class="img-fluid mb-4" style="max-height: 300px;" alt="Imagem do evento">
+  {% endif %}
+
+  <div class="card mx-auto" style="max-width: 500px;">
+    <div class="card-body">
+      <h4 class="card-title">{{ inscricao.participante.nome }}</h4>
+      <p class="card-text"><strong>Email:</strong> {{ inscricao.participante.email }}</p>
+      <p class="card-text"><strong>Telefone:</strong> {{ inscricao.participante.telefone }}</p>
+      <hr>
+      <p><strong>Data e horário:</strong> {{ inscricao.evento.data|date:"d/m/Y H:i" }}</p>
+      <p><strong>Local:</strong> {{ inscricao.evento.local }}</p>
+      <p><strong>Descrição:</strong> {{ inscricao.evento.descricao }}</p>
+    </div>
+  </div>
+
+  <p class="mt-4 text-muted">Baixe ou mostre esta página na recepção. Cadeiras são limitadas — não chegue atrasado!</p>
+
+  <button onclick="window.print()" class="btn btn-primary mt-2">Imprimir Ingresso</button>
+</div>
+{% endblock %}

@@ -1,12 +1,13 @@
 from django.views import View
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView, DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin  
+from django.template.loader import render_to_string
 from .models import Evento, Participante, Inscricao
 from .forms import EventoForm, ParticipanteForm
 
@@ -27,7 +28,7 @@ class EventoCreateView(LoginRequiredMixin, CreateView):
 
 class EventoUpdateView(LoginRequiredMixin, UpdateView):  
     model = Evento
-    fields = ['titulo', 'descricao', 'data', 'local', 'imagem']
+    form_class = EventoForm
     template_name = 'eventos/evento_form.html'
     success_url = reverse_lazy('evento-list')
     login_url = 'login'
@@ -54,15 +55,28 @@ class InscricaoCreateView(FormView):
             return self.form_invalid(form)
 
         participante = form.save()
-        Inscricao.objects.create(evento=self.evento, participante=participante)
 
-        send_mail(
-            subject='Confirmação de Inscrição',
-            message=f'Olá {participante.nome}, sua inscrição no evento "{self.evento.titulo}" foi confirmada!',
+        if Inscricao.objects.filter(evento=self.evento, participante__email=participante.email).exists():
+            messages.warning(self.request, "Você já está inscrito neste evento.")
+            return self.form_invalid(form)
+
+        inscricao = Inscricao.objects.create(evento=self.evento, participante=participante)
+
+        contexto_email = {
+            'inscricao': inscricao,
+            'evento': self.evento,
+            'url_ingresso': self.request.build_absolute_uri(reverse('ingresso-detail', args=[inscricao.pk]))
+        }
+        html_content = render_to_string('eventos/ingresso_email.html', contexto_email)
+
+        email = EmailMultiAlternatives(
+            subject=f'Confirmação de Inscrição: {self.evento.titulo}',
+            body="Sua inscrição foi confirmada.",
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[participante.email],
-            fail_silently=False,
+            to=[participante.email]
         )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
 
         send_mail(
             subject='Nova Inscrição Recebida',
@@ -72,7 +86,7 @@ class InscricaoCreateView(FormView):
             fail_silently=False,
         )
 
-        messages.success(self.request, "Inscrição realizada com sucesso!")
+        messages.success(self.request, "Inscrição realizada com sucesso! Verifique seu e-mail.")
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -82,6 +96,12 @@ class InscricaoCreateView(FormView):
         context = super().get_context_data(**kwargs)
         context['evento'] = self.evento
         return context
+
+
+class IngressoDetailView(DetailView):
+    model = Inscricao
+    template_name = 'eventos/ingresso.html'
+    context_object_name = 'inscricao'
 
 
 class OrganizadorLoginView(LoginView):

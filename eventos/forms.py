@@ -2,17 +2,18 @@ from django import forms
 from .models import Evento, Participante
 
 class EventoForm(forms.ModelForm):
-    data = forms.DateField(
-        input_formats=['%d/%m/%Y'],
-        widget=forms.DateInput(
-            format='%d/%m/%Y',
+    data = forms.DateTimeField(  # Alterado de DateField para DateTimeField
+        input_formats=['%d/%m/%Y %H:%M'],
+        widget=forms.DateTimeInput(
+            format='%d/%m/%Y %H:%M',
             attrs={
                 'type': 'text',
-                'placeholder': 'dd/mm/aaaa',
+                'placeholder': 'dd/mm/aaaa hh:mm',
                 'autocomplete': 'off',
                 'class': 'form-control'
             }
-        )
+        ),
+        label='Data e Hora do Evento'
     )
 
     class Meta:
