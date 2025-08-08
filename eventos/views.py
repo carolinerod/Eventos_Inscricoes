@@ -12,6 +12,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.encoding import smart_str
+from django.utils import timezone
 from urllib.parse import urljoin
 import csv
 
@@ -109,11 +110,20 @@ class InscricaoCreateView(FormView):
         inscricao = Inscricao.objects.create(evento=self.evento, participante=participante)
 
         ingresso_path = reverse('ingresso-detail', args=[inscricao.pk])
-        base_url = getattr(settings, 'PUBLIC_APP_URL', '').rstrip('/')
-        if base_url:
-            url_ingresso = urljoin(base_url + '/', ingresso_path.lstrip('/'))
-        else:
-            url_ingresso = self.request.build_absolute_uri(ingresso_path)
+        base_url = getattr(settings, 'PUBLIC_APP_URL', '').strip()
+
+        if not base_url:
+            try:
+                host = (self.request.get_host() or '').strip()
+            except Exception:
+                host = ''
+            if not host:
+                allowed = [h for h in getattr(settings, 'ALLOWED_HOSTS', []) if h and not h.startswith('.')]
+                host = allowed[0] if allowed else 'localhost:8000'
+            scheme = 'https' if (not settings.DEBUG or self.request.is_secure()) else 'http'
+            base_url = f"{scheme}://{host}"
+
+        url_ingresso = urljoin(base_url.rstrip('/') + '/', ingresso_path.lstrip('/'))
 
         contexto_email = {
             'inscricao': inscricao,
@@ -290,10 +300,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['eventos'] = Evento.objects.annotate(total=Count('inscricoes')).order_by('-data')
-        ctx['totais'] = {
-            'eventos': Evento.objects.count(),
-            'inscricoes': Inscricao.objects.count(),
-            'participantes': Participante.objects.count(),
-        }
+        ctx['total_eventos'] = Evento.objects.count()
+        ctx['total_inscricoes'] = Inscricao.objects.count()
+        ctx['total_participantes'] = Participante.objects.count()
+        ctx['proximos_eventos'] = (
+            Evento.objects.filter(data__gte=timezone.now())
+            .order_by('data')[:5]
+        )
         return ctx
