@@ -10,6 +10,11 @@ SECRET_KEY = config('SECRET_KEY', default='').strip('"').strip("'")
 DEBUG = config('DEBUG', cast=bool, default=False)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='localhost,127.0.0.1')
 
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']  
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
