@@ -5,20 +5,58 @@
 {% block content %}
 <h2 class="mb-3">{{ view.object.pk|yesno:"Editar Evento,Novo Evento" }}</h2>
 
+{# Erros gerais do form (não atrelados a campos) #}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data" class="col-md-8">
   {% csrf_token %}
-  {{ form.non_field_errors }}
+
   <div class="row g-3">
-    <div class="col-md-8">{{ form.titulo.label_tag }} {{ form.titulo }}</div>
-    <div class="col-md-4">{{ form.tipo.label_tag }} {{ form.tipo }}</div>
-    <div class="col-md-6">{{ form.data.label_tag }} {{ form.data }}</div>
-    <div class="col-md-6">{{ form.local.label_tag }} {{ form.local }}</div>
-    <div class="col-12">{{ form.descricao.label_tag }} {{ form.descricao }}</div>
+    <div class="col-md-8">
+      {{ form.titulo.label_tag }} {{ form.titulo }}
+      {{ form.titulo.errors }}
+    </div>
+
+    <div class="col-md-4">
+      {{ form.tipo.label_tag }} {{ form.tipo }}
+      {{ form.tipo.errors }}
+    </div>
+
+    <div class="col-md-6">
+      {{ form.data.label_tag }} 
+      {{ form.data }}
+      <div class="form-text">Formato: DD/MM/AAAA HH:MM (ou use o seletor se disponível)</div>
+      {{ form.data.errors }}
+    </div>
+
+    <div class="col-md-6">
+      {{ form.local.label_tag }} {{ form.local }}
+      {{ form.local.errors }}
+    </div>
+
+    <div class="col-12">
+      {{ form.descricao.label_tag }} {{ form.descricao }}
+      {{ form.descricao.errors }}
+    </div>
+
     {% if form.observacao_organizador %}
-      <div class="col-12">{{ form.observacao_organizador.label_tag }} {{ form.observacao_organizador }}</div>
+      <div class="col-12">
+        {{ form.observacao_organizador.label_tag }} {{ form.observacao_organizador }}
+        {{ form.observacao_organizador.errors }}
+      </div>
     {% endif %}
-    <div class="col-md-4">{{ form.capacidade.label_tag }} {{ form.capacidade }}</div>
-    <div class="col-md-8">{{ form.imagem.label_tag }} {{ form.imagem }}</div>
+
+    <div class="col-md-4">
+      {{ form.capacidade.label_tag }} {{ form.capacidade }}
+      {{ form.capacidade.errors }}
+    </div>
+
+    <div class="col-md-8">
+      {{ form.imagem.label_tag }} {{ form.imagem }}
+      {{ form.imagem.errors }}
+    </div>
   </div>
 
   <div class="mt-3">

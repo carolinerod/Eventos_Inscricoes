@@ -25,7 +25,7 @@ class EventoListView(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset().order_by('data')
-        data_str = self.request.GET.get('data') 
+        data_str = self.request.GET.get('data')
         local = self.request.GET.get('local')
         if data_str:
             qs = qs.filter(data__date=data_str)
@@ -47,6 +47,10 @@ class EventoCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('evento-list')
     login_url = 'login'
 
+    def form_invalid(self, form):
+        messages.error(self.request, "Há erros no formulário. Por favor, corrija os campos destacados.")
+        return super().form_invalid(form)
+
 
 class EventoUpdateView(LoginRequiredMixin, UpdateView):
     model = Evento
@@ -54,6 +58,10 @@ class EventoUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'eventos/evento_form.html'
     success_url = reverse_lazy('evento-list')
     login_url = 'login'
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Há erros no formulário. Por favor, corrija os campos destacados.")
+        return super().form_invalid(form)
 
 
 class EventoDeleteView(LoginRequiredMixin, DeleteView):
@@ -71,11 +79,15 @@ class InscricaoCreateView(FormView):
         self.evento = get_object_or_404(Evento, pk=self.kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
 
+    def form_invalid(self, form):
+        messages.error(self.request, "Há erros no formulário. Verifique os campos e tente novamente.")
+        return super().form_invalid(form)
+
     def form_valid(self, form):
         cd = form.cleaned_data
-        email = cd.get('email', '').strip().lower()
+        email = (cd.get('email') or '').strip()
 
-        if Inscricao.objects.filter(evento=self.evento, participante__email=email).exists():
+        if Inscricao.objects.filter(evento=self.evento, participante__email__iexact=email).exists():
             messages.warning(self.request, "Você já está inscrito neste evento.")
             return self.form_invalid(form)
 
@@ -83,23 +95,21 @@ class InscricaoCreateView(FormView):
             messages.error(self.request, "Evento esgotado.")
             return self.form_invalid(form)
 
-        participante, _ = Participante.objects.get_or_create(
-            email=email,
-            defaults={
-                'nome': cd.get('nome'),
-                'telefone': cd.get('telefone'),
-                'assistencia': cd.get('assistencia'),
-                'assistencia_detalhes': cd.get('assistencia_detalhes'),
-            }
-        )
+        participante = Participante.objects.filter(email__iexact=email).first()
+        if not participante:
+            participante = Participante(email=email)
+
+        # Atualiza dados sempre
         participante.nome = cd.get('nome')
         participante.telefone = cd.get('telefone')
         participante.assistencia = cd.get('assistencia')
         participante.assistencia_detalhes = cd.get('assistencia_detalhes')
         participante.save()
 
+        # 4) Cria Inscrição
         inscricao = Inscricao.objects.create(evento=self.evento, participante=participante)
 
+        # 5) E-mail HTML para o participante
         contexto_email = {
             'inscricao': inscricao,
             'evento': self.evento,
@@ -269,7 +279,6 @@ class OrganizadorLoginView(LoginView):
 
 class OrganizadorLogoutView(LogoutView):
     next_page = reverse_lazy('evento-list')
-
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):

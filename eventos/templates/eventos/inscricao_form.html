@@ -15,25 +15,38 @@
     <a class="btn btn-sm btn-outline-success ms-2" href="{% url 'ingresso-detail' inscricao.pk %}">Ver meu ingresso</a>
   </div>
 {% else %}
+  {# Erros gerais e por campo #}
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
   <form method="post" class="col-md-8">
     {% csrf_token %}
-    {{ form.non_field_errors }}
 
     <div class="mb-3">
       {{ form.nome.label_tag }} {{ form.nome }}
+      {{ form.nome.errors }}
     </div>
+
     <div class="mb-3">
       {{ form.email.label_tag }} {{ form.email }}
+      {{ form.email.errors }}
     </div>
+
     <div class="mb-3">
       {{ form.telefone.label_tag }} {{ form.telefone }}
+      {{ form.telefone.errors }}
     </div>
+
     <div class="mb-3">
       <label class="form-label">Você precisa de algum tipo de assistência?</label>
       {{ form.assistencia }}
+      {{ form.assistencia.errors }}
     </div>
+
     <div class="mb-3" id="grupo-assistencia-detalhes">
       {{ form.assistencia_detalhes.label_tag }} {{ form.assistencia_detalhes }}
+      {{ form.assistencia_detalhes.errors }}
     </div>
 
     <button type="submit" class="btn btn-success">Confirmar Inscrição</button>
