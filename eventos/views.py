@@ -12,6 +12,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.encoding import smart_str
+from urllib.parse import urljoin
 import csv
 
 from .models import Evento, Participante, Inscricao
@@ -99,23 +100,25 @@ class InscricaoCreateView(FormView):
         if not participante:
             participante = Participante(email=email)
 
-        # Atualiza dados sempre
         participante.nome = cd.get('nome')
         participante.telefone = cd.get('telefone')
         participante.assistencia = cd.get('assistencia')
         participante.assistencia_detalhes = cd.get('assistencia_detalhes')
         participante.save()
 
-        # 4) Cria Inscrição
         inscricao = Inscricao.objects.create(evento=self.evento, participante=participante)
 
-        # 5) E-mail HTML para o participante
+        ingresso_path = reverse('ingresso-detail', args=[inscricao.pk])
+        base_url = getattr(settings, 'PUBLIC_APP_URL', '').rstrip('/')
+        if base_url:
+            url_ingresso = urljoin(base_url + '/', ingresso_path.lstrip('/'))
+        else:
+            url_ingresso = self.request.build_absolute_uri(ingresso_path)
+
         contexto_email = {
             'inscricao': inscricao,
             'evento': self.evento,
-            'url_ingresso': self.request.build_absolute_uri(
-                reverse('ingresso-detail', args=[inscricao.pk])
-            ),
+            'url_ingresso': url_ingresso,
         }
         html_content = render_to_string('eventos/ingresso_email.html', contexto_email)
 
