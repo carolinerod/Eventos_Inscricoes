@@ -110,20 +110,14 @@ class InscricaoCreateView(FormView):
         inscricao = Inscricao.objects.create(evento=self.evento, participante=participante)
 
         ingresso_path = reverse('ingresso-detail', args=[inscricao.pk])
-        base_url = getattr(settings, 'PUBLIC_APP_URL', '').strip()
 
-        if not base_url:
-            try:
-                host = (self.request.get_host() or '').strip()
-            except Exception:
-                host = ''
-            if not host:
-                allowed = [h for h in getattr(settings, 'ALLOWED_HOSTS', []) if h and not h.startswith('.')]
-                host = allowed[0] if allowed else 'localhost:8000'
-            scheme = 'https' if (not settings.DEBUG or self.request.is_secure()) else 'http'
-            base_url = f"{scheme}://{host}"
+        base_url = (getattr(settings, 'PUBLIC_APP_URL', '') or '').strip()
+        if base_url:
+            base = base_url.rstrip('/') + '/'
+        else:
+            base = self.request.build_absolute_uri('/')
 
-        url_ingresso = urljoin(base_url.rstrip('/') + '/', ingresso_path.lstrip('/'))
+        url_ingresso = urljoin(base, ingresso_path.lstrip('/'))
 
         contexto_email = {
             'inscricao': inscricao,
@@ -171,7 +165,6 @@ class IngressoDetailView(DetailView):
 
 
 class ListaInscritosView(LoginRequiredMixin, DetailView):
-    """Lista inscritos de um evento específico, com busca."""
     model = Evento
     template_name = 'eventos/inscritos_list.html'
     context_object_name = 'evento'
@@ -193,7 +186,6 @@ class ListaInscritosView(LoginRequiredMixin, DetailView):
 
 
 class InscricoesAdminListView(LoginRequiredMixin, ListView):
-    """Página geral de inscrições com filtro por evento e busca."""
     model = Inscricao
     template_name = 'eventos/inscricoes_admin_list.html'
     context_object_name = 'inscricoes'
@@ -302,9 +294,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx['total_eventos'] = Evento.objects.count()
         ctx['total_inscricoes'] = Inscricao.objects.count()
-        ctx['total_participantes'] = Participante.objects.count()
+        ctx['total_participantes'] = Inscricao.objects.values('participante_id').distinct().count()
         ctx['proximos_eventos'] = (
             Evento.objects.filter(data__gte=timezone.now())
+            .annotate(total=Count('inscricoes'))
             .order_by('data')[:5]
         )
         return ctx
+

@@ -1,63 +1,70 @@
-{% extends 'eventos/base.html' %}
-{% block title %}Data & Business Intelligence Summit 2025{% endblock %}
+{% extends "eventos/base.html" %}
+
+{% block title %}Eventos{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">Agenda – Data & Business Intelligence Summit 2025</h2>
-
-  {# NOVO: filtros públicos por data/local (GET) #}
-  <form method="get" class="row g-2 mb-3">
-    <div class="col-sm-4">
-      <label class="form-label">Data</label>
-      <input type="date" name="data" class="form-control" value="{{ f_data }}">
-    </div>
-    <div class="col-sm-6">
-      <label class="form-label">Local</label>
-      <input type="text" name="local" class="form-control" placeholder="Ex.: Auditório, Lab" value="{{ f_local }}">
-    </div>
-    <div class="col-sm-2 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit">Filtrar</button>
-    </div>
-  </form>
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 class="mb-0">Eventos</h2>
 
   {% if user.is_authenticated %}
-    <div class="mb-3 text-end">
-      <a href="{% url 'evento-create' %}" class="btn btn-primary">+ Novo Evento</a>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+      <a href="{% url 'evento-create' %}" class="btn btn-primary btn-sm">Novo Evento</a>
     </div>
   {% endif %}
-
-  <ul class="list-group">
-    {% for evento in eventos %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="mb-1">{{ evento.titulo }}</h5>
-          <small class="text-muted">
-            <strong>Quando:</strong> {{ evento.data|date:"d/m/Y H:i" }} |
-            <strong>Onde:</strong> {{ evento.local }}
-          </small>
-          <p class="mb-1">{{ evento.descricao }}</p>
-        </div>
-        <div class="text-end">
-          {# botão de inscrição público #}
-          <a href="{% url 'evento-inscricao' evento.pk %}"
-             class="btn btn-success mb-2"
-             {% if evento.total_inscritos >= evento.capacidade %}disabled title="Vagas esgotadas"{% endif %}>
-            Inscrever-se
-          </a>
-          <br>
-          {% if user.is_authenticated %}
-            <a href="{% url 'evento-inscritos' evento.pk %}" class="btn btn-sm btn-outline-primary me-2">
-              Inscritos ({{ evento.total_inscritos }} / {{ evento.capacidade }})
-            </a>
-            <a href="{% url 'evento-update' evento.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
-            <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-sm btn-danger">Excluir</a>
-          {% endif %}
-        </div>
-      </li>
-    {% empty %}
-      <li class="list-group-item">Nenhuma atividade cadastrada no momento.</li>
-    {% endfor %}
-  </ul>
 </div>
-{% endblock %}
 
+<form method="get" class="row g-2 mb-3">
+  <div class="col-sm-3">
+    <input type="date" name="data" value="{{ f_data }}" class="form-control" />
+  </div>
+  <div class="col-sm-5">
+    <input type="text" name="local" value="{{ f_local }}" class="form-control" placeholder="Filtrar por local" />
+  </div>
+  <div class="col-sm-4 d-flex gap-2">
+    <button class="btn btn-outline-primary">Filtrar</button>
+    <a href="{% url 'evento-list' %}" class="btn btn-outline-secondary">Limpar</a>
+  </div>
+</form>
+
+{% if eventos %}
+  <div class="list-group">
+    {% for e in eventos %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">{{ e.titulo }}</h5>
+            <div class="text-muted small">
+              <span><strong>Quando:</strong> {{ e.data|date:"d/m/Y H:i" }}</span>
+              &nbsp;|&nbsp;
+              <span><strong>Onde:</strong> {{ e.local }}</span>
+              &nbsp;|&nbsp;
+              <span><strong>Capacidade:</strong> {{ e.capacidade }}</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            {% if user.is_authenticated %}
+              {# Área do organizador: sem botão Exportar #}
+              <a href="{% url 'evento-update' e.pk %}" class="btn btn-outline-secondary btn-sm">Editar</a>
+              <a href="{% url 'evento-delete' e.pk %}" class="btn btn-outline-danger btn-sm">Excluir</a>
+              <a href="{% url 'evento-inscritos' e.pk %}" class="btn btn-outline-info btn-sm">Inscritos</a>
+            {% else %}
+              {# Público: só inscrição #}
+              <a href="{% url 'evento-inscricao' e.pk %}" class="btn btn-success btn-sm">Inscrever-se</a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if e.imagem %}
+          <div class="mt-2">
+            <img src="{{ e.imagem.url }}" alt="Banner do evento" class="img-fluid rounded" style="max-height:180px;">
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">Nenhum evento encontrado.</div>
+{% endif %}
+{% endblock %}
