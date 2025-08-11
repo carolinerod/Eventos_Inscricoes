@@ -6,14 +6,10 @@
     <h2>Eventos</h2>
     <div class="d-flex align-items-center gap-2">
       {% if user.is_authenticated %}
-        {# Organizador logado: manter só "Novo Evento"; o Dashboard já está na navbar #}
+        {# Organizador logado: mostrar apenas "Novo Evento"; NENHUM botão de área do organizador aqui #}
         <a href="{% url 'evento-create' %}" class="btn btn-primary btn-sm">Novo Evento</a>
-      {% else %}
-        {# Público: mostrar "Área do organizador" que leva ao login e retorna ao dashboard #}
-        <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="btn btn-outline-primary btn-sm">
-          Área do organizador
-        </a>
       {% endif %}
+      {# Se NÃO estiver logado, não mostra nada aqui (login do organizador já existe em outro lugar) #}
     </div>
   </div>
 
@@ -33,8 +29,12 @@
                 {{ evento.descricao|truncatewords:20 }}
               </p>
               <div class="mt-auto">
-                <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-success btn-sm">Inscrever-se</a>
+                {% if not user.is_authenticated %}
+                  {# Participante/visitante: pode se inscrever #}
+                  <a href="{% url 'evento-inscricao' evento.pk %}" class="btn btn-success btn-sm">Inscrever-se</a>
+                {% endif %}
                 {% if user.is_authenticated %}
+                  {# Organizador: ações administrativas #}
                   <a href="{% url 'evento-update' evento.pk %}" class="btn btn-warning btn-sm">Editar</a>
                   <a href="{% url 'evento-delete' evento.pk %}" class="btn btn-danger btn-sm">Excluir</a>
                   <a href="{% url 'evento-inscritos' evento.pk %}" class="btn btn-info btn-sm">Inscritos</a>
