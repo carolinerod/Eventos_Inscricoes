@@ -12,7 +12,6 @@ User = get_user_model()
 class ExportCsvTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # usuário para passar pelo @login_required das views
         cls.user = User.objects.create_user(
             username='admin', password='x', is_staff=True
         )
@@ -56,13 +55,10 @@ class ExportCsvTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
         content = resp.content.decode('utf-8')
-        # Cabeçalho
         self.assertIn("Evento,Data/Hora,Participante,Email,Telefone,Observações,Data inscrição", content)
-        # Conteúdo básico
         self.assertIn("Minicurso Python", content)
         self.assertIn("Ana", content)
         self.assertIn("Bruno", content)
-        # Observações vêm de assistencia_detalhes
         self.assertIn("Precisa de tomada próxima", content)
 
     def test_exportar_inscricoes_filtradas_csv(self):
@@ -76,11 +72,8 @@ class ExportCsvTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
         content = resp.content.decode('utf-8')
-        # Cabeçalho
         self.assertIn("Evento,Data/Hora,Participante,Email,Telefone,Observações,Data inscrição", content)
-        # Conteúdo básico
         self.assertIn("Minicurso Python", content)
         self.assertIn("Ana", content)
         self.assertIn("Bruno", content)
-        # Observações vêm de assistencia_detalhes
         self.assertIn("Precisa de tomada próxima", content)

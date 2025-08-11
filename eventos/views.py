@@ -1,4 +1,4 @@
-from django.views import View
+from django.views import View 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView, DetailView, TemplateView
 from django.urls import reverse_lazy, reverse
@@ -91,11 +91,11 @@ class InscricaoCreateView(FormView):
 
         if Inscricao.objects.filter(evento=self.evento, participante__email__iexact=email).exists():
             messages.warning(self.request, "Você já está inscrito neste evento.")
-            return self.form_invalid(form)
+            return self.render_to_response(self.get_context_data(form=form))
 
         if self.evento.inscricoes.count() >= self.evento.capacidade:
             messages.error(self.request, "Evento esgotado.")
-            return self.form_invalid(form)
+            return self.render_to_response(self.get_context_data(form=form))
 
         participante = Participante.objects.filter(email__iexact=email).first()
         if not participante:
@@ -301,4 +301,3 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             .order_by('data')[:5]
         )
         return ctx
-
